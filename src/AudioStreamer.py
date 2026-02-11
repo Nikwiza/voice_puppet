@@ -81,6 +81,35 @@ class LiveAudioStremer:
             pyaudio.paFloat32: 1.0,
         }
 
+    def _audio_callback(self, in_data, frame_count, time_info, status):
+        """
+        Callback function called when new audio data is available.
+
+        Runs on a separate thread. It stores the latest audio 
+        data for volume calculations.
+
+        Args:
+            in_data (bytes): Raw audio data
+            frame_count (int): Number of frames
+            time_info (dict): Timing information
+            status (int): Status flags
+
+        Returns:
+            tuple: (None, pyaudio.paContinue) to continue streaming
+        """
+
+        if status:
+            self.logger(f"Audio callback status: {status}")
+        
+        # Store audio data in a thread-safe manner
+        with self.data_lock:
+            self.latest_audio_data = in_data
+        
+        return (None, pyaudio.paContinue)
+    
+    def start_recording(self):
+        raise NotImplementedError()
+
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.DEBUG,
